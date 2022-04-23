@@ -26,6 +26,16 @@ cxn
 
 //Schemas & Models
 
+//schema the definition of our data type
+
+const todoSchema = new mongoose.Schema({
+    text: String,
+    completed: Boolean
+}, {timestamps: true})
+
+//model the object for working with our data type
+const Todo = mongoose.model("Todo", todoSchema)
+
 
 // Create Express App
 const app = express()
@@ -39,11 +49,25 @@ app.use(methodOverride("_method"))//over ride request methods for form submissio
 
 
 //routes
+app.get("/", async (req, res) => {
+    //go get todos
+    const todos = await Todo.find({})
+    //render index.ejs
+    res.render("index.ejs", {todos})
+})
 
-app.get("/", (req, res) => {
-    res.send("<h1>Hello WOrld</h1>")})
-
-
+app.get("/todo/seed", async (req, res) => {
+    // delete all existing todos
+    await Todo.remove({}).catch((err) => res.send(err))
+    // add you sample todos
+    const todos = await Todo.create([
+        {text: "eat breakfast", completed: false},
+        {text: "eat lunch", completed: false},
+        {text: "eat dinner", completed: false}
+    ]).catch((err) => res.send(err))
+    // send the todos as json
+    res.json(todos)
+})
 //listener
 const PORT = process.env.PORT
 app.listen(PORT, () => console.log(`listening on port ${PORT}`))
